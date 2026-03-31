@@ -179,6 +179,16 @@ function toggleCompare(productId) {
             showToast('คุณสามารถเปรียบเทียบสินค้าได้สูงสุด 4 รายการ');
             return;
         }
+
+        // ตรวจสอบว่าสินค้าที่เลือกมีหมวดหมู่เดียวกับสินค้าในรายการเปรียบเทียบหรือไม่
+        if (compare.length > 0) {
+            const firstProduct = products.find(p => p.id === compare[0]);
+            if (firstProduct && firstProduct.category !== product.category) {
+                showToast(`กรุณาเลือกสินค้าในหมวดหมู่เดียวกัน (${firstProduct.category}) เพื่อเปรียบเทียบ`);
+                return;
+            }
+        }
+
         compare.push(productId);
         showToast(`เพิ่ม "${product.name.substring(0, 30)}..." ลงเปรียบเทียบแล้ว`);
     }
