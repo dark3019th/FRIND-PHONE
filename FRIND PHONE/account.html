@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Frind Phone - ศูนย์รวมสินค้าไอที คอมพิวเตอร์ โน้ตบุ๊ค อุปกรณ์เกมมิ่ง ราคาดี ผ่อน 0% ส่งฟรี">
+    <title>บัญชีของฉัน — Frind Phone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- ======== Top Bar ======== -->
+    <div class="top-bar">
+        <div class="container">
+            <span>ยินดีต้อนรับสู่ Frind Phone | ส่งฟรีทั่วประเทศ เมื่อสั่งซื้อขั้นต่ำ ฿1,500</span>
+            <div class="top-bar-links">
+
+                <a href="#" onclick="openOrderStatusModal(); return false;">เช็คสถานะสินค้า</a>
+                <span class="divider">|</span>
+                <a href="#">ตำแหน่งงานว่าง</a>
+                <span class="divider">|</span>
+                <a href="#">TH</a> / <a href="#">EN</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== Header ======== -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-rocket"></i></span>
+                    FRIND PHONE
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="ค้นหาสินค้าอะไรดี ? เช่น Notebook, Monitor, GPU...">
+                <select class="search-cat" id="search-category">
+                    <option value="">หมวดหมู่สินค้า</option>
+                    <option value="notebook">โน้ตบุ๊ค</option>
+                    <option value="monitor">จอคอมพิวเตอร์</option>
+                    <option value="hardware">ฮาร์ดแวร์</option>
+                    <option value="gaming">เกมมิ่งเกียร์</option>
+                    <option value="phone">สมาร์ทโฟน</option>
+                </select>
+                <button class="search-btn" id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="header-actions">
+                <a href="compare.html" class="header-action" id="compare-btn">
+                    <span class="icon">
+                        <i class="fas fa-balance-scale"></i>
+                        <span class="badge" id="compare-count">0</span>
+                    </span>
+                    <span>เปรียบเทียบ</span>
+                </a>
+                <a href="wishlist.html" class="header-action" id="wishlist-btn">
+                    <span class="icon">
+                        <i class="fas fa-heart"></i>
+                        <span class="badge" id="wishlist-count">0</span>
+                    </span>
+                    <span>สิ่งที่ชอบ</span>
+                </a>
+                <a href="cart.html" class="header-action" id="cart-btn">
+                    <span class="icon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="badge" id="cart-count">0</span>
+                    </span>
+                    <span>ตะกร้า</span>
+                </a>
+                <a href="account.html" class="header-action" id="account-btn">
+                    <span class="icon"><i class="far fa-user"></i></span>
+                    <span>บัญชีของฉัน</span>
+                </a>
+            </div>
+
+            <button class="mobile-toggle" id="mobile-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ======== Navigation ======== -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-links" id="nav-links">
+                <li class="has-dropdown">
+                    <a href="products.html" class="nav-category-btn"><i class="fas fa-th-list"></i> หมวดหมู่สินค้า</a>
+                    <div class="dropdown-menu" style="min-width: 250px;">
+                        <a href="products.html"><i class="fas fa-layer-group" style="width:20px; color:#666;"></i> สินค้าทั้งหมด</a>
+                        <a href="products.html?cat=apple"><i class="fab fa-apple" style="width:20px; color:#666;"></i> Apple Products</a>
+                        <a href="products.html?cat=notebook"><i class="fas fa-laptop" style="width:20px; color:#666;"></i> โน้ตบุ๊ค</a>
+                        <a href="products.html?cat=hardware"><i class="fas fa-microchip" style="width:20px; color:#666;"></i> ฮาร์ดแวร์</a>
+                        <a href="products.html?cat=monitor"><i class="fas fa-tv" style="width:20px; color:#666;"></i> จอคอมพิวเตอร์</a>
+                        <a href="products.html?cat=gaming"><i class="fas fa-gamepad" style="width:20px; color:#666;"></i> เกมมิ่งเกียร์</a>
+                        <a href="products.html?cat=phone"><i class="fas fa-mobile-alt" style="width:20px; color:#666;"></i> สมาร์ทโฟน</a>
+                        <a href="products.html?cat=audio"><i class="fas fa-headphones" style="width:20px; color:#666;"></i> เครื่องเสียง</a>
+                        <a href="products.html?cat=network"><i class="fas fa-wifi" style="width:20px; color:#666;"></i> เน็ตเวิร์ค</a>
+                        <a href="products.html?cat=printer"><i class="fas fa-print" style="width:20px; color:#666;"></i> เครื่องพิมพ์</a>
+                    </div>
+                </li>
+                <li class="has-dropdown">
+                    <a href="#">APPLE</a>
+                    <div class="dropdown-menu">
+                        <a href="products.html?cat=apple">MacBook</a>
+                        <a href="products.html?cat=apple">iPhone</a>
+                        <a href="products.html?cat=apple">iPad</a>
+                        <a href="products.html?cat=apple">AirPods</a>
+                        <a href="products.html?cat=apple">Apple Watch</a>
+                    </div>
+                </li>
+                <li class="has-dropdown">
+                    <a href="products.html?cat=notebook">โน้ตบุ๊ค</a>
+                    <div class="dropdown-menu">
+                        <a href="products.html?cat=notebook">Acer</a>
+                        <a href="products.html?cat=notebook">ASUS</a>
+                        <a href="products.html?cat=notebook">Dell</a>
+                        <a href="products.html?cat=notebook">HP</a>
+                        <a href="products.html?cat=notebook">Lenovo</a>
+                        <a href="products.html?cat=notebook">MSI</a>
+                    </div>
+                </li>
+
+                <li class="has-dropdown">
+                    <a href="products.html?cat=hardware">ฮาร์ดแวร์</a>
+                    <div class="dropdown-menu">
+                        <a href="products.html?cat=hardware">CPU / ซีพียู</a>
+                        <a href="products.html?cat=hardware">การ์ดจอ / VGA</a>
+                        <a href="products.html?cat=hardware">เมนบอร์ด</a>
+                        <a href="products.html?cat=hardware">แรม / RAM</a>
+                        <a href="products.html?cat=hardware">SSD / HDD</a>
+                        <a href="products.html?cat=hardware">เพาเวอร์ซัพพลาย</a>
+                    </div>
+                </li>
+                <li><a href="products.html">สินค้าทั้งหมด</a></li>
+                <li><a href="products.html?cat=notebook">โน้ตบุ๊ค</a></li>
+                <li><a href="products.html?cat=hardware">ฮาร์ดแวร์</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ======== Breadcrumb ======== -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">หน้าแรก</a>
+            <span class="separator"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">บัญชีของฉัน</span>
+        </div>
+    </div>
+
+    <!-- ======== Account Section ======== -->
+    <section class="account-page section-padding">
+        <div class="container">
+            <div class="account-container">
+                <!-- Sidebar -->
+                <aside class="account-sidebar">
+                    <div class="user-profile-summary">
+                        <div class="avatar"><i class="fas fa-user-circle"></i></div>
+                        <div class="info">
+                            <h3 id="sidebar-user-name">ผู้ใช้งาน</h3>
+                            <p id="sidebar-user-email">—</p>
+                        </div>
+                    </div>
+                    <nav class="account-nav-menu">
+                        <ul>
+                            <li><a href="#" data-tab="profile" class="active"><i class="fas fa-user"></i>
+                                    ข้อมูลส่วนตัว</a></li>
+                            <li><a href="#" data-tab="orders"><i class="fas fa-box"></i> ประวัติการสั่งซื้อ</a></li>
+                            <li><a href="#" data-tab="addresses"><i class="fas fa-map-marker-alt"></i>
+                                    ที่อยู่สำหรับจัดส่ง</a></li>
+                            <li><a href="#" data-tab="payment"><i class="fas fa-credit-card"></i> วิธีการชำระเงิน</a>
+                            </li>
+                            <li><a href="wishlist.html"><i class="fas fa-heart"></i> สิ่งที่ชอบ</a></li>
+                            <li><a href="index.html" class="logout-link"><i class="fas fa-sign-out-alt"></i>
+                                    ออกจากระบบ</a></li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <!-- Main Content -->
+                <main class="account-main-content">
+
+                    <!-- ===== Tab: Profile ===== -->
+                    <div class="account-tab-panel active" data-panel="profile">
+                        <div class="account-content-header">
+                            <h2>ข้อมูลส่วนตัว</h2>
+                            <p>จัดการข้อมูลส่วนตัวและตั้งค่าบัญชีของคุณ</p>
+                        </div>
+                        <div class="account-content-body">
+                            <form id="profile-form" class="account-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="first-name">ชื่อ</label>
+                                        <input type="text" id="first-name" class="account-input" value="">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="last-name">นามสกุล</label>
+                                        <input type="text" id="last-name" class="account-input" value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">อีเมล</label>
+                                    <input type="email" id="email" class="account-input" value="" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">เบอร์โทรศัพท์</label>
+                                    <input type="tel" id="phone" class="account-input" value=""
+                                        placeholder="0XX-XXX-XXXX">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dob">วันเกิด</label>
+                                    <input type="date" id="dob" class="account-input" value="">
+                                </div>
+                                <div class="form-group">
+                                    <label>เพศ</label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="male"> ชาย
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="female"> หญิง
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="other"> อื่นๆ
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-save-profile">บันทึกข้อมูล</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- ===== Tab: Order History ===== -->
+                    <div class="account-tab-panel" data-panel="orders">
+                        <div class="account-content-header">
+                            <h2><i class="fas fa-box"></i> ประวัติการสั่งซื้อ</h2>
+                            <p>ดูรายละเอียดและสถานะคำสั่งซื้อของคุณ</p>
+                        </div>
+                        <div class="account-content-body">
+                            <div id="orders-list">
+                                <!-- JS renders order cards here -->
+                            </div>
+                            <div id="orders-empty" class="account-empty-state" style="display:none;">
+                                <i class="fas fa-receipt"></i>
+                                <h3>ยังไม่มีประวัติการสั่งซื้อ</h3>
+                                <p>คำสั่งซื้อจะปรากฏที่นี่เมื่อคุณทำการสั่งซื้อสินค้า</p>
+                                <a href="products.html" class="btn-save-profile"
+                                    style="text-decoration:none;display:inline-block;margin-top:12px;">เลือกซื้อสินค้า</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Tab: Shipping Addresses ===== -->
+                    <div class="account-tab-panel" data-panel="addresses">
+                        <div class="account-content-header"
+                            style="display:flex;justify-content:space-between;align-items:flex-start;">
+                            <div>
+                                <h2><i class="fas fa-map-marker-alt"></i> ที่อยู่สำหรับจัดส่ง</h2>
+                                <p>จัดการที่อยู่จัดส่งสินค้าของคุณ</p>
+                            </div>
+                            <button class="btn-save-profile" id="btn-add-address"
+                                style="margin-top:0;white-space:nowrap;">
+                                <i class="fas fa-plus"></i> เพิ่มที่อยู่ใหม่
+                            </button>
+                        </div>
+                        <div class="account-content-body">
+                            <div id="addresses-list">
+                                <!-- JS renders address cards here -->
+                            </div>
+                            <div id="addresses-empty" class="account-empty-state" style="display:none;">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <h3>ยังไม่มีที่อยู่จัดส่ง</h3>
+                                <p>เพิ่มที่อยู่สำหรับจัดส่งเพื่อความสะดวกในการสั่งซื้อสินค้า</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+
+                <!-- Address Modal -->
+                <div class="address-modal-overlay" id="address-modal" style="display:none;">
+                    <div class="address-modal">
+                        <div class="address-modal-header">
+                            <h3 id="address-modal-title">เพิ่มที่อยู่ใหม่</h3>
+                            <button class="address-modal-close" id="address-modal-close"><i
+                                    class="fas fa-times"></i></button>
+                        </div>
+                        <form id="address-form" class="account-form">
+                            <input type="hidden" id="addr-edit-id" value="">
+                            <div class="form-group">
+                                <label for="addr-label">ชื่อที่อยู่ (เช่น บ้าน, ที่ทำงาน)</label>
+                                <input type="text" id="addr-label" class="account-input" placeholder="เช่น บ้าน, ออฟฟิศ"
+                                    required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="addr-name">ชื่อ-นามสกุลผู้รับ</label>
+                                    <input type="text" id="addr-name" class="account-input"
+                                        placeholder="ชื่อจริง นามสกุล" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="addr-phone">เบอร์โทรศัพท์</label>
+                                    <input type="tel" id="addr-phone" class="account-input" placeholder="08X-XXX-XXXX"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="addr-address">ที่อยู่</label>
+                                <textarea id="addr-address" class="account-input" rows="3"
+                                    placeholder="บ้านเลขที่, ถนน, ซอย, ตำบล/แขวง, อำเภอ/เขต..." required></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="addr-province">จังหวัด</label>
+                                    <select id="addr-province" class="account-input" required>
+                                        <option value="">เลือกจังหวัด</option>
+                                        <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                                        <option value="นนทบุรี">นนทบุรี</option>
+                                        <option value="ปทุมธานี">ปทุมธานี</option>
+                                        <option value="สมุทรปราการ">สมุทรปราการ</option>
+                                        <option value="เชียงใหม่">เชียงใหม่</option>
+                                        <option value="ชลบุรี">ชลบุรี</option>
+                                        <option value="ภูเก็ต">ภูเก็ต</option>
+                                        <option value="ขอนแก่น">ขอนแก่น</option>
+                                        <option value="นครราชสีมา">นครราชสีมา</option>
+                                        <option value="สงขลา">สงขลา</option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="addr-zipcode">รหัสไปรษณีย์</label>
+                                    <input type="text" id="addr-zipcode" class="account-input" placeholder="10xxx"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="radio-label" style="cursor:pointer;">
+                                    <input type="checkbox" id="addr-default"> ตั้งเป็นที่อยู่หลัก
+                                </label>
+                            </div>
+                            <button type="submit" class="btn-save-profile" style="width:100%;">บันทึกที่อยู่</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======== Footer ======== -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <!--div class="footer-col">
+                    <h3>Frind Phone</h3>
+                    <ul>
+                        <li><a href="#">เกี่ยวกับเรา</a></li>
+                        <li><a href="#">แผนที่สาขา</a></li>
+                        <li><a href="#">ตำแหน่งงานว่าง</a></li>
+                        <li><a href="#">เช็คประกันสินค้า</a></li>
+                        <li><a href="#">นิตยสารออนไลน์</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>บริการลูกค้า</h3>
+                    <ul>
+                        <li><a href="#">วิธีการสั่งซื้อสินค้า</a></li>
+                        <li><a href="#">ตรวจสอบสถานะสินค้า</a></li>
+                        <li><a href="#">วิธีการชำระเงิน</a></li>
+                        <li><a href="#">การเปลี่ยน / คืนสินค้า</a></li>
+                        <li><a href="#">การใช้คูปองส่วนลด</a></li>
+                    </ul>
+                </div!-->
+                <div class="footer-col">
+                    <h3>ติดต่อเรา</h3>
+                    <div class="contact-item">
+                        <span class="ci-icon"><i class="fas fa-map-marker-alt"></i></span>
+                        <span>69 หมู่6 ตำบล แหลมฟ้าผ่า อำเภอ พระสมุทรเจดีย์, Samut Prakan, Thailand, 10290</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="ci-icon"><i class="fas fa-phone"></i></span>
+                        <span>081-623-0795</span>
+                    </div>
+                    <!--div class="contact-item">
+                        <span class="ci-icon"><i class="fas fa-envelope"></i></span>
+                        <span>support@frindphone.com</span>
+                    </div-->
+                    <div class="footer-social">
+                        <a href="https://www.facebook.com/profile.php?id=61556154857290" target="_blank"><i
+                                class="fab fa-facebook-f"></i></a>
+                        <!--a href="#"><i class="fab fa-line"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a-->
+                    </div>
+                </div>
+                <!--div class="footer-col">
+                    <h3>นโยบาย</h3>
+                    <ul>
+                        <li><a href="#">นโยบายข้อมูลส่วนบุคคล</a></li>
+                        <li><a href="#">นโยบายคุกกี้</a></li>
+                        <li><a href="#">นโยบายคุ้มครองข้อมูลส่วนบุคคล</a></li>
+                        <li><a href="#">ข้อกำหนดและเงื่อนไข</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 Frind Phone. สงวนลิขสิทธิ์.</span>
+                <div class="payment-methods">
+                    <span class="pay-icon">VISA</span>
+                    <span class="pay-icon">MasterCard</span>
+                    <span class="pay-icon">PromptPay</span>
+                    <span class="pay-icon">KBank</span>
+                    <span class="pay-icon">SCB</span>
+                    <span class="pay-icon">COD</span>
+                </div>
+            </div-->
+            </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="back-to-top"><i class="fas fa-chevron-up"></i></button>
+
+    <script src="js/data.js"></script>
+    <script src="js/order-status-modal.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
