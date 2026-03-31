@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>หน้าแรก - Frind Phone Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-rocket"></i> FP Admin
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="index.html" class="active"><i class="fas fa-home"></i> แดชบอร์ด</a></li>
+            <li><a href="products.html"><i class="fas fa-box"></i> จัดการสินค้า</a></li>
+            <li><a href="orders.html"><i class="fas fa-shopping-cart"></i> คำสั่งซื้อ</a></li>
+            <li><a href="customers.html"><i class="fas fa-users"></i> ลูกค้า</a></li>
+            <li><a href="settings.html"><i class="fas fa-cog"></i> ตั้งค่า</a></li>
+        </ul>
+        <div class="sidebar-bottom">
+            <a href="../index.html"><i class="fas fa-external-link-alt"></i> กลับสู่หน้าร้าน</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="ค้นหา...">
+            </div>
+            <div class="topbar-user">
+                <span>Admin User</span>
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <h1>ภาพรวมระบบ</h1>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-box"></i></div>
+                    <div class="stat-info">
+                        <h3>สินค้าทั้งหมด</h3>
+                        <p id="total-products">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-info">
+                        <h3>คำสั่งซื้อ(เดือนนี้)</h3>
+                        <p id="dash-orders-month">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-info">
+                        <h3>รายได้(เดือนนี้)</h3>
+                        <p id="dash-revenue-month">฿ 0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3>ลูกค้า</h3>
+                        <p id="dash-customers">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-sections">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2>คำสั่งซื้อล่าสุด</h2>
+                        <a href="orders.html" class="btn btn-edit">ดูทั้งหมด <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>รหัสสั่งซื้อ</th>
+                                <th>ลูกค้า</th>
+                                <th>ยอดรวม</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-recent-orders">
+                            <tr>
+                                <td colspan="4" style="text-align:center;color:#999;padding:30px;">กำลังโหลด...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/data.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>
