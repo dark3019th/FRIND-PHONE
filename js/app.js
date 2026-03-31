@@ -1056,7 +1056,7 @@ function initAuth() {
             accountBtn.innerHTML = `<span class="icon"><i class="far fa-user"></i></span><span>${displayName}</span>`;
 
             // Show Admin Dashboard link for admin users
-            if (user.role === 'user') {
+            if (user.role === 'admin') {
                 const headerActions = accountBtn.parentElement;
                 if (headerActions && !document.getElementById('admin-link')) {
                     const adminLink = document.createElement('a');
