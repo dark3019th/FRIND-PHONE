@@ -7,6 +7,49 @@
 let wishlist = JSON.parse(localStorage.getItem('ag_wishlist') || '[]');
 let compare = JSON.parse(localStorage.getItem('ag_compare') || '[]');
 
+function getCurrentUser() {
+    return JSON.parse(localStorage.getItem('ag_user') || '{}');
+}
+
+function getCurrentUserId() {
+    const user = getCurrentUser();
+    return user && user.id ? Number(user.id) : null;
+}
+
+async function hydrateUserStateFromServer() {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+
+    try {
+        const [wishlistRes, compareRes, cartRes] = await Promise.all([
+            fetch(`api/user-data.php?type=wishlist&user_id=${userId}`),
+            fetch(`api/user-data.php?type=compare&user_id=${userId}`),
+            fetch(`api/user-data.php?type=cart&user_id=${userId}`)
+        ]);
+
+        const wishlistData = await wishlistRes.json();
+        const compareData = await compareRes.json();
+        const cartData = await cartRes.json();
+
+        if (wishlistData.success && Array.isArray(wishlistData.data)) {
+            wishlist = wishlistData.data.map(Number);
+            localStorage.setItem('ag_wishlist', JSON.stringify(wishlist));
+        }
+
+        if (compareData.success && Array.isArray(compareData.data)) {
+            compare = compareData.data.map(Number);
+            localStorage.setItem('ag_compare', JSON.stringify(compare));
+        }
+
+        if (cartData.success && Array.isArray(cartData.data)) {
+            cart = cartData.data.map(item => ({ id: Number(item.product_id), qty: Number(item.quantity || 1) }));
+            localStorage.setItem('ag_cart', JSON.stringify(cart));
+        }
+    } catch (error) {
+        console.warn('Could not hydrate user state from database:', error.message);
+    }
+}
+
 // ========== UTILITY FUNCTIONS ==========
 function formatPrice(num) {
     return num.toLocaleString('th-TH');
@@ -39,7 +82,7 @@ function createProductCard(product) {
       <div class="card-cta">
         <button class="btn-wishlist ${wishlist.includes(product.id) ? 'active' : ''}" onclick="toggleWishlist(${product.id})" id="wishlist-icon-${product.id}" title="เพิ่มสิ่งที่ชอบ"><i class="${wishlist.includes(product.id) ? 'fas' : 'far'} fa-heart"></i></button>
         <button class="btn-compare ${compare.includes(product.id) ? 'active' : ''}" onclick="toggleCompare(${product.id})" id="compare-icon-${product.id}" title="เปรียบเทียบสินค้า"><i class="fas fa-balance-scale"></i></button>
-        <button class="btn-buy" onclick="addToCart(${product.id})"><i class="fas fa-shopping-cart"></i> ใส่ตะกร้า</button>
+        <button class="btn-buy" onclick="window.location.href='product-detail.html?id=${product.id}'"><i class="fas fa-search-dollar"></i> ดูรายละเอียดราคา</button>
       </div>
       <a href="product-detail.html?id=${product.id}" class="card-body">
         <span class="card-brand">${product.brand}</span>
@@ -76,7 +119,7 @@ function updateWishlistBadge() {
     });
 }
 
-function toggleWishlist(productId) {
+async function toggleWishlist(productId) {
     const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
     if (!isLoggedIn) {
         showToast('กรุณาเข้าสู่ระบบก่อนเพิ่มสิ่งที่ชอบ');
@@ -88,26 +131,43 @@ function toggleWishlist(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    if (index > -1) {
+    const action = index > -1 ? 'remove' : 'add';
+    if (action === 'remove') {
         wishlist.splice(index, 1);
         showToast(`ลบ "${product.name.substring(0, 30)}..." ออกจากสิ่งที่ชอบแล้ว`);
     } else {
         wishlist.push(productId);
         showToast(`เพิ่ม "${product.name.substring(0, 30)}..." ลงสิ่งที่ชอบแล้ว`);
     }
-    
+
     localStorage.setItem('ag_wishlist', JSON.stringify(wishlist));
     updateWishlistBadge();
 
-    // Update icons on current page
+    const userId = getCurrentUserId();
+    if (userId) {
+        try {
+            const res = await fetch('api/user-data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'wishlist', user_id: userId, product_id: productId, action })
+            });
+            const result = await res.json();
+            if (result.success && Array.isArray(result.data)) {
+                wishlist = result.data.map(Number);
+                localStorage.setItem('ag_wishlist', JSON.stringify(wishlist));
+            }
+        } catch (error) {
+            console.warn('Wishlist sync failed:', error.message);
+        }
+    }
+
     const icons = document.querySelectorAll(`#wishlist-icon-${productId}`);
     icons.forEach(icon => {
         const isWished = wishlist.includes(productId);
         icon.classList.toggle('active', isWished);
         icon.innerHTML = `<i class="${isWished ? 'fas' : 'far'} fa-heart"></i>`;
     });
-    
-    // If on wishlist page, re-render
+
     if (window.location.href.includes('wishlist.html')) {
         initWishlistPage();
     }
@@ -166,12 +226,13 @@ function updateCompareBadge() {
     });
 }
 
-function toggleCompare(productId) {
+async function toggleCompare(productId) {
     const index = compare.indexOf(productId);
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    if (index > -1) {
+    const action = index > -1 ? 'remove' : 'add';
+    if (action === 'remove') {
         compare.splice(index, 1);
         showToast(`ลบ "${product.name.substring(0, 30)}..." ออกจากเปรียบเทียบแล้ว`);
     } else {
@@ -180,7 +241,6 @@ function toggleCompare(productId) {
             return;
         }
 
-        // ตรวจสอบว่าสินค้าที่เลือกมีหมวดหมู่เดียวกับสินค้าในรายการเปรียบเทียบหรือไม่
         if (compare.length > 0) {
             const firstProduct = products.find(p => p.id === compare[0]);
             if (firstProduct && firstProduct.category !== product.category) {
@@ -192,18 +252,34 @@ function toggleCompare(productId) {
         compare.push(productId);
         showToast(`เพิ่ม "${product.name.substring(0, 30)}..." ลงเปรียบเทียบแล้ว`);
     }
-    
+
     localStorage.setItem('ag_compare', JSON.stringify(compare));
     updateCompareBadge();
 
-    // Update icons on current page
+    const userId = getCurrentUserId();
+    if (userId) {
+        try {
+            const res = await fetch('api/user-data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'compare', user_id: userId, product_id: productId, action })
+            });
+            const result = await res.json();
+            if (result.success && Array.isArray(result.data)) {
+                compare = result.data.map(Number);
+                localStorage.setItem('ag_compare', JSON.stringify(compare));
+            }
+        } catch (error) {
+            console.warn('Compare sync failed:', error.message);
+        }
+    }
+
     const icons = document.querySelectorAll(`#compare-icon-${productId}`);
     icons.forEach(icon => {
         const isCompared = compare.includes(productId);
         icon.classList.toggle('active', isCompared);
     });
-    
-    // If on compare page, re-render
+
     if (window.location.href.includes('compare.html')) {
         initComparePage();
     }
@@ -256,7 +332,7 @@ function initComparePage() {
                     <div class="compare-brand">${p.brand}</div>
                     <a href="product-detail.html?id=${p.id}" class="compare-name">${p.name}</a>
                     <div class="compare-price">฿${formatPrice(p.price)}</div>
-                    <button class="btn-buy" onclick="addToCart(${p.id})"><i class="fas fa-shopping-cart"></i> ใส่ตะกร้า</button>
+                    <button class="btn-buy" onclick="window.location.href='product-detail.html?id=${p.id}'"><i class="fas fa-search-dollar"></i> ดูรายละเอียดราคา</button>
                 </div>
                 <div class="compare-specs-list">
                     ${specsHTML}
@@ -293,7 +369,7 @@ function updateCartBadge() {
     badges.forEach(b => b.textContent = total);
 }
 
-function addToCart(productId) {
+async function addToCart(productId) {
     const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
     if (!isLoggedIn) {
         showToast('กรุณาเข้าสู่ระบบก่อนสั่งซื้อสินค้า');
@@ -314,7 +390,25 @@ function addToCart(productId) {
     localStorage.setItem('ag_cart', JSON.stringify(cart));
     updateCartBadge();
 
-    // Show toast
+    const userId = getCurrentUserId();
+    if (userId) {
+        try {
+            const res = await fetch('api/user-data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'cart', user_id: userId, product_id: productId, quantity: 1 })
+            });
+            const result = await res.json();
+            if (result.success && Array.isArray(result.data)) {
+                cart = result.data.map(item => ({ id: Number(item.product_id), qty: Number(item.quantity || 1) }));
+                localStorage.setItem('ag_cart', JSON.stringify(cart));
+                updateCartBadge();
+            }
+        } catch (error) {
+            console.warn('Cart sync failed:', error.message);
+        }
+    }
+
     showToast(`เพิ่ม "${product.name.substring(0, 30)}..." ลงตะกร้าแล้ว`);
 }
 
@@ -638,46 +732,20 @@ function initProductDetail() {
         });
     }
 
-    // Add to cart
+    // Add to compare list
     const addCartBtn = document.getElementById('btn-add-cart');
     if (addCartBtn) {
         addCartBtn.addEventListener('click', () => {
-            const qty = parseInt(qtyInput.value) || 1;
-            const existing = cart.find(item => item.id === product.id);
-            if (existing) {
-                existing.qty += qty;
-            } else {
-                cart.push({ id: product.id, qty: qty });
-            }
-            localStorage.setItem('ag_cart', JSON.stringify(cart));
-            updateCartBadge();
-            showToast(`เพิ่ม "${product.name.substring(0, 30)}..." x${qty} ลงตะกร้าแล้ว`);
+            toggleCompare(product.id);
         });
     }
 
-    // Buy now
+    // Compare page
     const buyNowBtn = document.getElementById('btn-buy-now');
     if (buyNowBtn) {
         buyNowBtn.addEventListener('click', () => {
-            const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
-            if (!isLoggedIn) {
-                showToast('กรุณาเข้าสู่ระบบก่อนสั่งซื้อสินค้า');
-                setTimeout(() => window.location.href = 'login.html', 1500);
-                return;
-            }
-
-            const qty = parseInt(qtyInput.value) || 1;
-            const existing = cart.find(item => item.id === product.id);
-            if (existing) {
-                existing.qty += qty;
-            } else {
-                cart.push({ id: product.id, qty: qty });
-            }
-            localStorage.setItem('ag_cart', JSON.stringify(cart));
-            updateCartBadge();
-
-            showToast('กำลังพาไปหน้าชำระเงิน...');
-            setTimeout(() => { window.location.href = 'checkout.html'; }, 800);
+            toggleCompare(product.id);
+            setTimeout(() => { window.location.href = 'compare.html'; }, 500);
         });
     }
 
@@ -1086,7 +1154,7 @@ function initAuth() {
     // ---- Handle REGISTER form ----
     const regForm = document.getElementById('reg-fname') ? document.querySelector('.auth-form') : null;
     if (regForm && currentPath.endsWith('register.html')) {
-        regForm.addEventListener('submit', (e) => {
+        regForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const firstName = document.getElementById('reg-fname').value.trim();
@@ -1095,7 +1163,6 @@ function initAuth() {
             const password  = document.getElementById('reg-password').value;
             const confirmPw = document.getElementById('reg-confirm-password').value;
 
-            // Validation
             if (password.length < 8) {
                 showToast('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
                 return;
@@ -1105,65 +1172,66 @@ function initAuth() {
                 return;
             }
 
-            // Check if email already exists in the users registry
-            const usersRegistry = JSON.parse(localStorage.getItem('ag_users') || '[]');
-            if (usersRegistry.some(u => u.email === email)) {
-                showToast('อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
-                return;
+            try {
+                const response = await fetch('api/auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'register', firstName, lastName, email, password })
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    showToast(result.error || 'สมัครสมาชิกไม่สำเร็จ');
+                    return;
+                }
+
+                const newUser = { ...result.data, firstName: result.data.firstName, lastName: result.data.lastName };
+                localStorage.setItem('ag_auth', 'true');
+                localStorage.setItem('ag_user', JSON.stringify(newUser));
+                localStorage.setItem('ag_users', JSON.stringify([newUser]));
+
+                showToast('สมัครสมาชิกเรียบร้อยแล้ว! กำลังเข้าสู่ระบบ...');
+                await hydrateUserStateFromServer();
+                setTimeout(() => { window.location.href = 'account.html'; }, 1000);
+            } catch (error) {
+                showToast('สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่');
             }
-
-            // Create the new user object
-            const newUser = {
-                id: Date.now(),
-                firstName,
-                lastName,
-                email,
-                password,   // In production this must be hashed on the server
-                phone: '',
-                dob: '',
-                gender: '',
-                role: 'user',
-                createdAt: new Date().toISOString()
-            };
-
-            // Save to the users registry (simulates the database)
-            usersRegistry.push(newUser);
-            localStorage.setItem('ag_users', JSON.stringify(usersRegistry));
-
-            // Set as current logged-in user
-            localStorage.setItem('ag_auth', 'true');
-            localStorage.setItem('ag_user', JSON.stringify(newUser));
-
-            showToast('สมัครสมาชิกเรียบร้อยแล้ว! กำลังเข้าสู่ระบบ...');
-            setTimeout(() => { window.location.href = 'account.html'; }, 1000);
         });
-        return; // Don't bind login handler on register page
+        return;
     }
 
     // ---- Handle LOGIN form ----
     const loginForm = document.getElementById('login-email') ? document.querySelector('.auth-form') : null;
     if (loginForm && currentPath.endsWith('login.html')) {
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email    = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
-            // Look up the user in the registry
-            const usersRegistry = JSON.parse(localStorage.getItem('ag_users') || '[]');
-            const foundUser = usersRegistry.find(u => u.email === email && u.password === password);
+            try {
+                const response = await fetch('api/auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'login', email, password })
+                });
+                const result = await response.json();
 
-            if (!foundUser) {
-                showToast('อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่');
-                return;
+                if (!result.success) {
+                    showToast(result.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+                    return;
+                }
+
+                const foundUser = { ...result.data, firstName: result.data.firstName, lastName: result.data.lastName };
+                localStorage.setItem('ag_auth', 'true');
+                localStorage.setItem('ag_user', JSON.stringify(foundUser));
+
+                showToast('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับกลับ');
+                await hydrateUserStateFromServer();
+                setTimeout(() => { window.location.href = 'account.html'; }, 1000);
+            } catch (error) {
+                showToast('เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่');
             }
-
-            // Set as current logged-in user
-            localStorage.setItem('ag_auth', 'true');
-            localStorage.setItem('ag_user', JSON.stringify(foundUser));
-
-            showToast('เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับกลับ');
-            setTimeout(() => { window.location.href = 'account.html'; }, 1000);
         });
     }
 
@@ -1242,7 +1310,7 @@ function initAccountPage() {
         document.querySelectorAll('input[name="gender"]').forEach(r => r.checked = false);
     }
 
-    profileForm.addEventListener('submit', (e) => {
+    profileForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         user.firstName = fnameInput?.value.trim() || '';
         user.lastName  = lnameInput?.value.trim() || '';
@@ -1258,17 +1326,46 @@ function initAccountPage() {
             usersRegistry[idx] = { ...usersRegistry[idx], ...user };
             localStorage.setItem('ag_users', JSON.stringify(usersRegistry));
         }
+
+        try {
+            const response = await fetch('api/auth.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: user.id, firstName: user.firstName, lastName: user.lastName, phone: user.phone, dob: user.dob, gender: user.gender, email: user.email })
+            });
+            const result = await response.json();
+            if (result.success && result.data) {
+                const updatedUser = { ...user, ...result.data, firstName: result.data.firstName, lastName: result.data.lastName };
+                localStorage.setItem('ag_user', JSON.stringify(updatedUser));
+            }
+        } catch (error) {
+            console.warn('Profile sync failed:', error.message);
+        }
+
         if (sidebarName) sidebarName.textContent = `${user.firstName} ${user.lastName}`.trim();
         showToast('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว ✓');
     });
 
     // ===== Order History Tab =====
-    function renderOrderHistory() {
+    async function renderOrderHistory() {
         const listEl = document.getElementById('orders-list');
         const emptyEl = document.getElementById('orders-empty');
         if (!listEl) return;
 
-        const orders = JSON.parse(localStorage.getItem('ag_orders') || '[]');
+        let orders = JSON.parse(localStorage.getItem('ag_orders') || '[]');
+
+        try {
+            const query = new URLSearchParams();
+            if (user.email) query.set('customer_email', user.email);
+            const response = await fetch(`api/status.php?${query.toString()}`);
+            const result = await response.json();
+            if (result.success && Array.isArray(result.data)) {
+                orders = result.data;
+                localStorage.setItem('ag_orders', JSON.stringify(orders));
+            }
+        } catch (error) {
+            console.warn('Could not load order history from database:', error.message);
+        }
 
         if (orders.length === 0) {
             listEl.innerHTML = '';
@@ -1343,8 +1440,20 @@ function initAccountPage() {
     function getAddresses() {
         return JSON.parse(localStorage.getItem('ag_addresses') || '[]');
     }
-    function saveAddresses(arr) {
+    async function saveAddresses(arr) {
         localStorage.setItem('ag_addresses', JSON.stringify(arr));
+        const userId = getCurrentUserId();
+        if (!userId) return;
+        try {
+            const response = await fetch('api/user-data.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'addresses', user_id: userId, addresses: arr })
+            });
+            await response.json();
+        } catch (error) {
+            console.warn('Address sync failed:', error.message);
+        }
     }
 
     function renderAddresses() {
@@ -1715,6 +1824,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // These don't depend on product data — init immediately
     initAuth();
     updateCartBadge();
+    hydrateUserStateFromServer();
     updateWishlistBadge();
     updateCompareBadge();
     initSlider();

@@ -87,7 +87,15 @@ switch ($method) {
             jsonResponse(['success' => true, 'data' => formatOrder($row, $items)]);
         } else {
             // All orders (newest first)
-            $stmt = $db->query("SELECT * FROM orders ORDER BY ordered_at DESC");
+            $sql = "SELECT * FROM orders";
+            $params = [];
+            if (!empty($_GET['customer_email'])) {
+                $sql .= " WHERE customer_email = ?";
+                $params[] = trim($_GET['customer_email']);
+            }
+            $sql .= " ORDER BY ordered_at DESC";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
             $rows = $stmt->fetchAll();
 
             $result = [];
@@ -221,16 +229,16 @@ switch ($method) {
         if (isset($input['status'])) {
             $newStatus = $input['status'];
             if ($newStatus === 'shipping' && empty($existing['shipped_at'])) {
-                $updates[] = "shipped_at = NOW()";
+                $updates[] = "shipped_at = CURRENT_TIMESTAMP";
             }
             if ($newStatus === 'delivered' && empty($existing['delivered_at'])) {
-                $updates[] = "delivered_at = NOW()";
+                $updates[] = "delivered_at = CURRENT_TIMESTAMP";
                 if (empty($existing['shipped_at'])) {
-                    $updates[] = "shipped_at = NOW()";
+                    $updates[] = "shipped_at = CURRENT_TIMESTAMP";
                 }
             }
             if ($newStatus === 'cancelled' && empty($existing['cancelled_at'])) {
-                $updates[] = "cancelled_at = NOW()";
+                $updates[] = "cancelled_at = CURRENT_TIMESTAMP";
             }
         }
 
