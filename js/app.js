@@ -21,15 +21,13 @@ async function hydrateUserStateFromServer() {
     if (!userId) return;
 
     try {
-        const [wishlistRes, compareRes, cartRes] = await Promise.all([
+        const [wishlistRes, compareRes] = await Promise.all([
             fetch(`api/user-data.php?type=wishlist&user_id=${userId}`),
-            fetch(`api/user-data.php?type=compare&user_id=${userId}`),
-            fetch(`api/user-data.php?type=cart&user_id=${userId}`)
+            fetch(`api/user-data.php?type=compare&user_id=${userId}`)
         ]);
 
         const wishlistData = await wishlistRes.json();
         const compareData = await compareRes.json();
-        const cartData = await cartRes.json();
 
         if (wishlistData.success && Array.isArray(wishlistData.data)) {
             wishlist = wishlistData.data.map(Number);
@@ -39,11 +37,6 @@ async function hydrateUserStateFromServer() {
         if (compareData.success && Array.isArray(compareData.data)) {
             compare = compareData.data.map(Number);
             localStorage.setItem('ag_compare', JSON.stringify(compare));
-        }
-
-        if (cartData.success && Array.isArray(cartData.data)) {
-            cart = cartData.data.map(item => ({ id: Number(item.product_id), qty: Number(item.quantity || 1) }));
-            localStorage.setItem('ag_cart', JSON.stringify(cart));
         }
     } catch (error) {
         console.warn('Could not hydrate user state from database:', error.message);
@@ -107,9 +100,6 @@ function renderProducts(containerId, productList) {
     if (!container) return;
     container.innerHTML = productList.map(p => createProductCard(p)).join('');
 }
-
-// ========== CART ==========
-let cart = JSON.parse(localStorage.getItem('ag_cart') || '[]');
 
 // ========== WISHLIST ==========
 function updateWishlistBadge() {
@@ -361,55 +351,6 @@ function initComparePage() {
             }
         });
     }
-}
-
-function updateCartBadge() {
-    const badges = document.querySelectorAll('#cart-count');
-    const total = cart.reduce((sum, item) => sum + item.qty, 0);
-    badges.forEach(b => b.textContent = total);
-}
-
-async function addToCart(productId) {
-    const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
-    if (!isLoggedIn) {
-        showToast('กรุณาเข้าสู่ระบบก่อนสั่งซื้อสินค้า');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    const existing = cart.find(item => item.id === productId);
-    if (existing) {
-        existing.qty += 1;
-    } else {
-        cart.push({ id: productId, qty: 1 });
-    }
-
-    localStorage.setItem('ag_cart', JSON.stringify(cart));
-    updateCartBadge();
-
-    const userId = getCurrentUserId();
-    if (userId) {
-        try {
-            const res = await fetch('api/user-data.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'cart', user_id: userId, product_id: productId, quantity: 1 })
-            });
-            const result = await res.json();
-            if (result.success && Array.isArray(result.data)) {
-                cart = result.data.map(item => ({ id: Number(item.product_id), qty: Number(item.quantity || 1) }));
-                localStorage.setItem('ag_cart', JSON.stringify(cart));
-                updateCartBadge();
-            }
-        } catch (error) {
-            console.warn('Cart sync failed:', error.message);
-        }
-    }
-
-    showToast(`เพิ่ม "${product.name.substring(0, 30)}..." ลงตะกร้าแล้ว`);
 }
 
 function showToast(message) {
@@ -799,320 +740,13 @@ function initSearch() {
     });
 }
 
-// ========== CART PAGE INIT ==========
-function initCartPage() {
-    const cartItemsEl = document.getElementById('cart-items');
-    if (!cartItemsEl) return;
-
-    const cartLayout = document.getElementById('cart-layout');
-    const cartEmpty = document.getElementById('cart-empty');
-    const FREE_SHIPPING_THRESHOLD = 1500;
-    const SHIPPING_COST = 50;
-
-    function renderCartPage() {
-        if (cart.length === 0) {
-            // Show empty state
-            if (cartLayout) cartLayout.style.display = 'none';
-            if (cartEmpty) cartEmpty.style.display = 'block';
-
-            return;
-        }
-
-        if (cartLayout) cartLayout.style.display = 'grid';
-        if (cartEmpty) cartEmpty.style.display = 'none';
-
-        // Render items
-        cartItemsEl.innerHTML = cart.map((item, index) => {
-            const product = products.find(p => p.id === item.id);
-            if (!product) return '';
-
-            const itemTotal = product.price * item.qty;
-
-            return `
-            <div class="cart-item" data-index="${index}" style="animation-delay: ${index * 0.05}s">
-                <div class="cart-item-product">
-                    <a href="product-detail.html?id=${product.id}" class="cart-item-image">
-                        <img src="${product.image}" alt="${product.name}">
-                    </a>
-                    <div class="cart-item-details">
-                        <div class="cart-item-name">
-                            <a href="product-detail.html?id=${product.id}">${product.name}</a>
-                        </div>
-                        <div class="cart-item-specs">${product.specs}</div>
-                    </div>
-                </div>
-                <div class="cart-item-price">฿${formatPrice(product.price)}</div>
-                <div class="cart-item-qty">
-                    <div class="cart-qty-control">
-                        <button onclick="changeCartQty(${index}, -1)">−</button>
-                        <input type="number" value="${item.qty}" min="1" max="99" 
-                               onchange="setCartQty(${index}, this.value)">
-                        <button onclick="changeCartQty(${index}, 1)">+</button>
-                    </div>
-                </div>
-                <div class="cart-item-total">฿${formatPrice(itemTotal)}</div>
-                <div class="cart-item-remove">
-                    <button onclick="removeCartItem(${index})" title="ลบสินค้า">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>`;
-        }).join('');
-
-        // Update summary
-        updateCartSummary();
-
-
-    }
-
-    function updateCartSummary() {
-        const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-        const subtotal = cart.reduce((sum, item) => {
-            const product = products.find(p => p.id === item.id);
-            return sum + (product ? product.price * item.qty : 0);
-        }, 0);
-
-        const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-        const shipping = isFreeShipping ? 0 : SHIPPING_COST;
-        const total = subtotal + shipping;
-
-        document.getElementById('summary-qty').textContent = `${totalQty} ชิ้น`;
-        document.getElementById('summary-subtotal').textContent = `฿${formatPrice(subtotal)}`;
-        document.getElementById('summary-shipping').textContent = isFreeShipping ? 'ฟรี!' : `฿${formatPrice(shipping)}`;
-        document.getElementById('summary-total').textContent = `฿${formatPrice(total)}`;
-
-        // Shipping note
-        const shippingNote = document.getElementById('shipping-note');
-        if (shippingNote) {
-            if (isFreeShipping) {
-                shippingNote.className = 'cart-shipping-note free-shipping';
-                shippingNote.querySelector('span').textContent = 'คุณได้รับส่งฟรี! 🎉';
-            } else {
-                const diff = FREE_SHIPPING_THRESHOLD - subtotal;
-                shippingNote.className = 'cart-shipping-note need-more';
-                shippingNote.querySelector('span').textContent = `ซื้อเพิ่มอีก ฿${formatPrice(diff)} เพื่อรับส่งฟรี`;
-            }
-        }
-    }
-
-    // Expose functions globally
-    window.changeCartQty = function(index, delta) {
-        if (index < 0 || index >= cart.length) return;
-        cart[index].qty = Math.max(1, Math.min(99, cart[index].qty + delta));
-        localStorage.setItem('ag_cart', JSON.stringify(cart));
-        updateCartBadge();
-        renderCartPage();
-    };
-
-    window.setCartQty = function(index, value) {
-        if (index < 0 || index >= cart.length) return;
-        const qty = parseInt(value) || 1;
-        cart[index].qty = Math.max(1, Math.min(99, qty));
-        localStorage.setItem('ag_cart', JSON.stringify(cart));
-        updateCartBadge();
-        renderCartPage();
-    };
-
-    window.removeCartItem = function(index) {
-        if (index < 0 || index >= cart.length) return;
-        const product = products.find(p => p.id === cart[index].id);
-        cart.splice(index, 1);
-        localStorage.setItem('ag_cart', JSON.stringify(cart));
-        updateCartBadge();
-        renderCartPage();
-        if (product) {
-            showToast(`ลบ "${product.name.substring(0, 30)}..." ออกจากตะกร้าแล้ว`);
-        }
-    };
-
-    // Clear cart button
-    const clearBtn = document.getElementById('cart-clear-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            if (cart.length === 0) return;
-            if (confirm('คุณต้องการล้างตะกร้าสินค้าทั้งหมดหรือไม่?')) {
-                cart.length = 0;
-                localStorage.setItem('ag_cart', JSON.stringify(cart));
-                updateCartBadge();
-                renderCartPage();
-                showToast('ล้างตะกร้าสินค้าเรียบร้อยแล้ว');
-            }
-        });
-    }
-
-    // Checkout button
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', () => {
-            if (cart.length === 0) {
-                showToast('ไม่มีสินค้าในตะกร้า');
-                return;
-            }
-            window.location.href = 'checkout.html';
-        });
-    }
-
-    renderCartPage();
-}
-
-// ========== CHECKOUT PAGE INIT ==========
-function initCheckoutPage() {
-    const container = document.getElementById('checkout-container');
-    if (!container) return; // Only run on checkout page
-
-    if (cart.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center; padding: 60px 0;">
-                <i class="fas fa-shopping-cart" style="font-size: 60px; color: #ccc; margin-bottom: 20px;"></i>
-                <h2 style="margin-bottom: 10px;">ไม่พบสินค้าในตะกร้า</h2>
-                <p style="color: #666; margin-bottom: 20px;">กรุณาเลือกสินค้าใส่ตะกร้าก่อนดำเนินการชำระเงิน</p>
-                <a href="products.html" class="view-all-btn" style="display:inline-block; padding: 12px 24px;">เลือกซื้อสินค้า</a>
-            </div>
-        `;
-        return;
-    }
-
-    // Render Order Summary
-    const listEl = document.getElementById('chk-items-list');
-    const qtyEl = document.getElementById('chk-qty');
-    const subtotalEl = document.getElementById('chk-subtotal');
-    const shippingEl = document.getElementById('chk-shipping');
-    const totalEl = document.getElementById('chk-total');
-
-    const FREE_SHIPPING_THRESHOLD = 1500;
-    const SHIPPING_COST = 50;
-
-    let totalQty = 0;
-    let subtotal = 0;
-
-    listEl.innerHTML = cart.map((item) => {
-        const product = products.find(p => p.id === item.id);
-        if (!product) return '';
-        totalQty += item.qty;
-        subtotal += product.price * item.qty;
-        
-        return `
-            <div class="c-item">
-                <div style="display:flex;">
-                    <div class="c-item-img"><img src="${product.image}" alt=""></div>
-                    <div class="c-item-info">
-                        <div class="c-item-title">${product.name}</div>
-                        <div class="c-item-qty">จำนวน: ${item.qty}</div>
-                    </div>
-                </div>
-                <div class="c-item-price">฿${formatPrice(product.price * item.qty)}</div>
-            </div>
-        `;
-    }).join('');
-
-    const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-    const shipping = isFreeShipping ? 0 : SHIPPING_COST;
-    const finalTotal = subtotal + shipping;
-
-    if (qtyEl) qtyEl.textContent = totalQty;
-    if (subtotalEl) subtotalEl.textContent = `฿${formatPrice(subtotal)}`;
-    if (shippingEl) shippingEl.textContent = isFreeShipping ? 'ฟรี!' : `฿${formatPrice(shipping)}`;
-    if (totalEl) totalEl.textContent = `฿${formatPrice(finalTotal)}`;
-
-    // Place Order validation and Success Modal
-    const btnPlaceOrder = document.getElementById('btn-place-order');
-    const modal = document.getElementById('checkout-success-modal');
-    
-    if (btnPlaceOrder) {
-        btnPlaceOrder.addEventListener('click', () => {
-            const fname = document.getElementById('chk-fname')?.value;
-            const lname = document.getElementById('chk-lname')?.value;
-            const phone = document.getElementById('chk-phone')?.value;
-            const email = document.getElementById('chk-email')?.value;
-            const address = document.getElementById('chk-address')?.value;
-            const province = document.getElementById('chk-province')?.value;
-            const zipcode = document.getElementById('chk-zipcode')?.value;
-            const note = document.getElementById('chk-note')?.value || '';
-            const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'credit_card';
-            
-            if (!fname || !lname || !phone || !address || !province || !zipcode) {
-                showToast('กรุณากรอกข้อมูลการจัดส่งให้ครบถ้วนในช่องที่มี (*)');
-                return;
-            }
-            
-            // Generate order ID
-            const orderIdStr = '#AG-' + Math.floor(100000 + Math.random() * 900000);
-            
-            // Build order object
-            const orderItems = cart.map(item => {
-                const p = products.find(pr => pr.id === item.id);
-                return p ? { id: p.id, name: p.name, image: p.image, price: p.price, qty: item.qty } : null;
-            }).filter(Boolean);
-            
-            const paymentLabels = {
-                credit_card: 'บัตรเครดิต / เดบิต',
-                promptpay: 'QR Code (พร้อมเพย์)',
-                ibanking: 'Mobile Banking',
-                cod: 'เก็บเงินปลายทาง (COD)'
-            };
-            
-            const orderData = {
-                orderId: orderIdStr,
-                date: new Date().toISOString(),
-                items: orderItems,
-                shipping: { name: `${fname} ${lname}`, phone, email: email || '', address, province, zipcode, note },
-                paymentMethod: paymentLabels[paymentMethod] || paymentMethod,
-                subtotal: subtotal,
-                shippingCost: shipping,
-                total: finalTotal,
-                status: 'processing'
-            };
-            
-            // Save to ag_orders in localStorage (as fallback)
-            const orders = JSON.parse(localStorage.getItem('ag_orders') || '[]');
-            orders.unshift(orderData);
-            localStorage.setItem('ag_orders', JSON.stringify(orders));
-            
-            // Push to Status API Backend
-            const apiPayload = {
-                order_id: orderIdStr,
-                customer_name: `${fname} ${lname}`,
-                customer_phone: phone,
-                customer_email: email || '',
-                shipping_address: address,
-                shipping_province: province,
-                shipping_zipcode: zipcode,
-                shipping_note: note,
-                payment_method: orderData.paymentMethod,
-                subtotal: subtotal,
-                shipping_cost: shipping,
-                total: finalTotal,
-                status: 'processing',
-                items: orderItems
-            };
-
-            fetch('api/status.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(apiPayload)
-            }).then(res => res.json())
-              .then(data => console.log('✅ Order saved to API:', data))
-              .catch(err => console.warn('⚠️ API unavailable, order saved only to local storage', err));
-            
-            // Show Success Modal
-            document.getElementById('order-id').textContent = orderIdStr;
-            modal.style.display = 'flex';
-            
-            // Clear Cart visually and locally
-            cart.length = 0;
-            localStorage.setItem('ag_cart', JSON.stringify(cart));
-            updateCartBadge();
-        });
-    }
-}
-
 // ========== AUTHENTICATION ==========
 function initAuth() {
     const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
     const currentPath = window.location.pathname.toLowerCase();
     
-    // Protect account.html, cart.html, checkout.html, wishlist.html
-    const protectedPages = ['account.html', 'cart.html', 'checkout.html', 'wishlist.html'];
+    // Protect account.html and wishlist.html only
+    const protectedPages = ['account.html', 'wishlist.html'];
     if (protectedPages.some(page => currentPath.endsWith(page)) && !isLoggedIn) {
         window.location.href = 'login.html';
         return; // Stop execution
@@ -1242,9 +876,7 @@ function initAuth() {
             e.preventDefault();
             localStorage.removeItem('ag_auth');
             localStorage.removeItem('ag_user');
-            localStorage.removeItem('ag_cart');
             localStorage.removeItem('ag_wishlist');
-            cart.length = 0;
             wishlist.length = 0;
             showToast('ออกจากระบบเรียบร้อยแล้ว');
             setTimeout(() => { window.location.href = 'index.html'; }, 800);
@@ -1823,7 +1455,6 @@ function initViewToggle() {
 document.addEventListener('DOMContentLoaded', () => {
     // These don't depend on product data — init immediately
     initAuth();
-    updateCartBadge();
     hydrateUserStateFromServer();
     updateWishlistBadge();
     updateCompareBadge();
@@ -1840,8 +1471,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initHomepage();
         initProductsPage();
         initProductDetail();
-        initCartPage();
-        initCheckoutPage();
         initWishlistPage();
         initComparePage();
     });
