@@ -886,6 +886,12 @@ function initAuth() {
 
 // ========== ACCOUNT PAGE ==========
 function initAccountPage() {
+    const isLoggedIn = localStorage.getItem('ag_auth') === 'true';
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+    }
+
     const profileForm = document.getElementById('profile-form');
     if (!profileForm) return;
 
@@ -917,7 +923,6 @@ function initAccountPage() {
             });
 
             // Lazy render tabs
-            if (targetTab === 'orders') renderOrderHistory();
             if (targetTab === 'addresses') renderAddresses();
         });
     });
@@ -977,96 +982,6 @@ function initAccountPage() {
         if (sidebarName) sidebarName.textContent = `${user.firstName} ${user.lastName}`.trim();
         showToast('บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว ✓');
     });
-
-    // ===== Order History Tab =====
-    async function renderOrderHistory() {
-        const listEl = document.getElementById('orders-list');
-        const emptyEl = document.getElementById('orders-empty');
-        if (!listEl) return;
-
-        let orders = JSON.parse(localStorage.getItem('ag_orders') || '[]');
-
-        try {
-            const query = new URLSearchParams();
-            if (user.email) query.set('customer_email', user.email);
-            const response = await fetch(`api/status.php?${query.toString()}`);
-            const result = await response.json();
-            if (result.success && Array.isArray(result.data)) {
-                orders = result.data;
-                localStorage.setItem('ag_orders', JSON.stringify(orders));
-            }
-        } catch (error) {
-            console.warn('Could not load order history from database:', error.message);
-        }
-
-        if (orders.length === 0) {
-            listEl.innerHTML = '';
-            if (emptyEl) emptyEl.style.display = 'block';
-            return;
-        }
-
-        if (emptyEl) emptyEl.style.display = 'none';
-
-        const statusLabels = {
-            processing: { text: 'กำลังดำเนินการ', icon: 'fas fa-clock', cls: 'processing' },
-            shipped: { text: 'จัดส่งแล้ว', icon: 'fas fa-shipping-fast', cls: 'shipped' },
-            delivered: { text: 'ส่งถึงแล้ว', icon: 'fas fa-check-circle', cls: 'delivered' },
-            cancelled: { text: 'ยกเลิกแล้ว', icon: 'fas fa-times-circle', cls: 'cancelled' }
-        };
-
-        listEl.innerHTML = orders.map((order, idx) => {
-            const st = statusLabels[order.status] || statusLabels.processing;
-            const orderDate = new Date(order.date);
-            const dateStr = orderDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = orderDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-            const itemCount = order.items.reduce((s, i) => s + i.qty, 0);
-
-            const itemsHTML = order.items.map(item => `
-                <div class="order-item-row">
-                    <div class="order-item-img"><img src="${item.image}" alt=""></div>
-                    <div class="order-item-info">
-                        <div class="order-item-name">${item.name}</div>
-                        <div class="order-item-qty">จำนวน: ${item.qty}</div>
-                    </div>
-                    <div class="order-item-price">฿${formatPrice(item.price * item.qty)}</div>
-                </div>
-            `).join('');
-
-            return `
-            <div class="order-card">
-                <div class="order-card-header" onclick="document.getElementById('order-body-${idx}').classList.toggle('expanded'); this.querySelector('.order-toggle-icon').classList.toggle('rotated');">
-                    <div class="order-meta">
-                        <span class="order-meta-item"><strong>${order.orderId}</strong></span>
-                        <span class="order-meta-item">${dateStr} ${timeStr}</span>
-                        <span class="order-meta-item">${itemCount} ชิ้น</span>
-                        <span class="order-meta-item"><strong>฿${formatPrice(order.total)}</strong></span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span class="order-status-badge ${st.cls}"><i class="${st.icon}"></i> ${st.text}</span>
-                        <i class="fas fa-chevron-down order-toggle-icon"></i>
-                    </div>
-                </div>
-                <div class="order-card-body" id="order-body-${idx}">
-                    ${itemsHTML}
-                    <div style="margin-top:14px;">
-                        <div class="order-summary-row"><span>ยอดรวมสินค้า</span><span>฿${formatPrice(order.subtotal)}</span></div>
-                        <div class="order-summary-row"><span>ค่าจัดส่ง</span><span>${order.shippingCost === 0 ? 'ฟรี' : '฿' + formatPrice(order.shippingCost)}</span></div>
-                        <div class="order-summary-row total"><span>ยอดรวมทั้งสิ้น</span><span>฿${formatPrice(order.total)}</span></div>
-                    </div>
-                    <div class="order-shipping-info">
-                        <strong><i class="fas fa-map-marker-alt"></i> ที่อยู่จัดส่ง:</strong><br>
-                        ${order.shipping.name} | ${order.shipping.phone}<br>
-                        ${order.shipping.address}, ${order.shipping.province} ${order.shipping.zipcode}
-                        ${order.shipping.note ? '<br><em>หมายเหตุ: ' + order.shipping.note + '</em>' : ''}
-                    </div>
-                    <div style="margin-top:8px;font-size:13px;color:var(--text-light);">
-                        <i class="fas fa-credit-card"></i> ชำระด้วย: ${order.paymentMethod}
-                    </div>
-                </div>
-            </div>
-            `;
-        }).join('');
-    }
 
     // ===== Addresses Tab =====
     function getAddresses() {
@@ -1228,197 +1143,6 @@ function initAccountPage() {
     };
 }
 
-// ========== ORDER STATUS CHECK MODAL ==========
-function openOrderStatusModal() {
-    const modal = document.getElementById('order-status-modal');
-    if (!modal) return;
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-
-    // Focus the input
-    setTimeout(() => {
-        const input = document.getElementById('order-status-input');
-        if (input) input.focus();
-    }, 300);
-}
-
-function closeOrderStatusModal() {
-    const modal = document.getElementById('order-status-modal');
-    if (!modal) return;
-    modal.classList.remove('show');
-    document.body.style.overflow = '';
-}
-
-async function searchOrderStatus() {
-    const input = document.getElementById('order-status-input');
-    const searchBtn = document.querySelector('.order-search-btn');
-    if (!input) return;
-
-    let query = input.value.trim();
-    if (!query) {
-        showToast('กรุณากรอกรหัสคำสั่งซื้อ');
-        input.focus();
-        return;
-    }
-
-    // Normalize: ensure prefix
-    if (!query.startsWith('#')) query = '#' + query;
-    const queryNoHash = query.replace('#', '');
-
-    const emptyEl = document.getElementById('order-status-empty');
-    const notFoundEl = document.getElementById('order-status-notfound');
-    const foundEl = document.getElementById('order-status-found');
-
-    let order = null;
-
-    // UI Loading state
-    if (searchBtn) searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ค้นหา...';
-    if (searchBtn) searchBtn.disabled = true;
-
-    try {
-        // Try to fetch from API
-        const response = await fetch('api/status.php?id=' + encodeURIComponent(queryNoHash));
-        const result = await response.json();
-        if (result.success && result.data) {
-            order = result.data;
-        } else {
-            // API returned successful response but order not found
-            order = null;
-        }
-    } catch (error) {
-        // API failed (offline / no server) — fallback to localStorage
-        console.warn('⚠️ API unavailable, searching localStorage fallback', error.message);
-        const orders = JSON.parse(localStorage.getItem('ag_orders') || '[]');
-        order = orders.find(o => o.orderId && o.orderId.toLowerCase() === query.toLowerCase());
-    }
-
-    // Restore UI UI state
-    if (searchBtn) searchBtn.innerHTML = '<i class="fas fa-search"></i> ค้นหา';
-    if (searchBtn) searchBtn.disabled = false;
-
-    if (!order) {
-        // Not found
-        emptyEl.style.display = 'none';
-        notFoundEl.style.display = 'block';
-        foundEl.style.display = 'none';
-        return;
-    }
-
-    // Found — show details
-    emptyEl.style.display = 'none';
-    notFoundEl.style.display = 'none';
-    foundEl.style.display = 'block';
-
-    renderOrderStatusDetails(order);
-}
-
-function renderOrderStatusDetails(order) {
-    const STATUS_LABELS = {
-        processing: 'รอดำเนินการ',
-        shipping: 'กำลังจัดส่ง',
-        delivered: 'จัดส่งแล้ว',
-        cancelled: 'ยกเลิก'
-    };
-
-    const STATUS_STEPS = ['processing', 'shipping', 'delivered'];
-
-    // Header
-    document.getElementById('osf-order-id').textContent = order.orderId;
-    const d = new Date(order.date);
-    document.getElementById('osf-date').textContent = d.toLocaleDateString('th-TH', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-
-    // Badge
-    const badgeEl = document.getElementById('osf-badge');
-    badgeEl.textContent = STATUS_LABELS[order.status] || order.status;
-    badgeEl.className = 'osf-badge ' + order.status;
-
-    // Timeline
-    const currentStepIndex = STATUS_STEPS.indexOf(order.status);
-    const isCancelled = order.status === 'cancelled';
-
-    // Reset all
-    STATUS_STEPS.forEach((step, i) => {
-        const stepEl = document.getElementById('step-' + step);
-        stepEl.className = 'timeline-step';
-    });
-    document.getElementById('line-1').className = 'timeline-line';
-    document.getElementById('line-2').className = 'timeline-line';
-
-    // Show/hide timeline vs cancelled banner
-    const timelineEl = document.querySelector('.order-timeline');
-    const cancelledBanner = document.getElementById('osf-cancelled-banner');
-
-    if (isCancelled) {
-        timelineEl.style.display = 'none';
-        cancelledBanner.style.display = 'flex';
-    } else {
-        timelineEl.style.display = 'flex';
-        cancelledBanner.style.display = 'none';
-
-        // Mark completed and active steps
-        STATUS_STEPS.forEach((step, i) => {
-            const stepEl = document.getElementById('step-' + step);
-            if (i < currentStepIndex) {
-                stepEl.classList.add('completed');
-            } else if (i === currentStepIndex) {
-                stepEl.classList.add('active');
-            }
-        });
-
-        // Lines
-        if (currentStepIndex >= 1) document.getElementById('line-1').classList.add('filled');
-        if (currentStepIndex >= 2) document.getElementById('line-2').classList.add('filled');
-    }
-
-    // Shipping info
-    const shipping = order.shipping || {};
-    document.getElementById('osf-name').textContent = shipping.name || '-';
-    document.getElementById('osf-phone').textContent = shipping.phone || '-';
-    document.getElementById('osf-address').textContent =
-        [shipping.address, shipping.province, shipping.zipcode].filter(Boolean).join(', ') || '-';
-    document.getElementById('osf-payment').textContent = order.paymentMethod || '-';
-
-    // Items
-    const itemsEl = document.getElementById('osf-items');
-    const items = order.items || [];
-    itemsEl.innerHTML = items.map(item => `
-        <li>
-            <img src="${item.image || 'https://placehold.co/44x44/f5f5f5/ccc?text=...'}" alt="">
-            <div class="osf-item-info">
-                <div class="osf-item-name">${item.name || '-'}</div>
-                <div class="osf-item-qty">จำนวน: ${item.qty || 1}</div>
-            </div>
-            <div class="osf-item-price">฿${((item.price || 0) * (item.qty || 1)).toLocaleString('th-TH')}</div>
-        </li>
-    `).join('');
-
-    // Totals
-    document.getElementById('osf-subtotal').textContent = `฿${(order.subtotal || 0).toLocaleString('th-TH')}`;
-    document.getElementById('osf-shipping').textContent =
-        order.shippingCost === 0 ? 'ฟรี' : `฿${(order.shippingCost || 0).toLocaleString('th-TH')}`;
-    document.getElementById('osf-total').textContent = `฿${(order.total || 0).toLocaleString('th-TH')}`;
-}
-
-function initOrderStatusModal() {
-    // Enter key to search
-    const input = document.getElementById('order-status-input');
-    if (input) {
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchOrderStatus();
-        });
-    }
-
-    // Close on overlay click
-    const overlay = document.getElementById('order-status-modal');
-    if (overlay) {
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) closeOrderStatusModal();
-        });
-    }
-}
-
 // ========== LIST/GRID VIEW TOGGLE ==========
 function initViewToggle() {
     const gridBtn = document.getElementById('grid-view');
@@ -1463,7 +1187,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initBackToTop();
     initSearch();
     initAccountPage();
-    initOrderStatusModal();
     initViewToggle();
 
     // These depend on product data — wait for API/fallback to load

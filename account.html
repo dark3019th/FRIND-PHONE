@@ -19,8 +19,6 @@
             <span>ยินดีต้อนรับสู่ Frind Phone | ส่งฟรีทั่วประเทศ เมื่อสั่งซื้อขั้นต่ำ ฿1,500</span>
             <div class="top-bar-links">
 
-                <a href="#" onclick="openOrderStatusModal(); return false;">เช็คสถานะสินค้า</a>
-                <span class="divider">|</span>
                 <a href="#">ตำแหน่งงานว่าง</a>
                 <span class="divider">|</span>
                 <a href="#">TH</a> / <a href="#">EN</a>
@@ -163,11 +161,8 @@
                         <ul>
                             <li><a href="#" data-tab="profile" class="active"><i class="fas fa-user"></i>
                                     ข้อมูลส่วนตัว</a></li>
-                            <li><a href="#" data-tab="orders"><i class="fas fa-box"></i> ประวัติการสั่งซื้อ</a></li>
                             <li><a href="#" data-tab="addresses"><i class="fas fa-map-marker-alt"></i>
                                     ที่อยู่สำหรับจัดส่ง</a></li>
-                            <li><a href="#" data-tab="payment"><i class="fas fa-credit-card"></i> วิธีการชำระเงิน</a>
-                            </li>
                             <li><a href="wishlist.html"><i class="fas fa-heart"></i> สิ่งที่ชอบ</a></li>
                             <li><a href="index.html" class="logout-link"><i class="fas fa-sign-out-alt"></i>
                                     ออกจากระบบ</a></li>
@@ -225,26 +220,6 @@
                                 </div>
                                 <button type="submit" class="btn-save-profile">บันทึกข้อมูล</button>
                             </form>
-                        </div>
-                    </div>
-
-                    <!-- ===== Tab: Order History ===== -->
-                    <div class="account-tab-panel" data-panel="orders">
-                        <div class="account-content-header">
-                            <h2><i class="fas fa-box"></i> ประวัติการสั่งซื้อ</h2>
-                            <p>ดูรายละเอียดและสถานะคำสั่งซื้อของคุณ</p>
-                        </div>
-                        <div class="account-content-body">
-                            <div id="orders-list">
-                                <!-- JS renders order cards here -->
-                            </div>
-                            <div id="orders-empty" class="account-empty-state" style="display:none;">
-                                <i class="fas fa-receipt"></i>
-                                <h3>ยังไม่มีประวัติการสั่งซื้อ</h3>
-                                <p>คำสั่งซื้อจะปรากฏที่นี่เมื่อคุณทำการสั่งซื้อสินค้า</p>
-                                <a href="products.html" class="btn-save-profile"
-                                    style="text-decoration:none;display:inline-block;margin-top:12px;">เลือกซื้อสินค้า</a>
-                            </div>
                         </div>
                     </div>
 
@@ -363,7 +338,6 @@
                     <ul>
                         <li><a href="#">วิธีการสั่งซื้อสินค้า</a></li>
                         <li><a href="#">ตรวจสอบสถานะสินค้า</a></li>
-                        <li><a href="#">วิธีการชำระเงิน</a></li>
                         <li><a href="#">การเปลี่ยน / คืนสินค้า</a></li>
                         <li><a href="#">การใช้คูปองส่วนลด</a></li>
                     </ul>
@@ -419,7 +393,6 @@
     <button class="back-to-top" id="back-to-top"><i class="fas fa-chevron-up"></i></button>
 
     <script src="js/data.js"></script>
-    <script src="js/order-status-modal.js"></script>
     <script src="js/app.js"></script>
 </body>
 
