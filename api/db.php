@@ -59,46 +59,6 @@ function initializeSchema($pdo) {
     ");
 
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id TEXT NOT NULL UNIQUE,
-            customer_name TEXT NOT NULL,
-            customer_phone TEXT,
-            customer_email TEXT,
-            shipping_address TEXT,
-            shipping_province TEXT,
-            shipping_zipcode TEXT,
-            shipping_note TEXT,
-            payment_method TEXT,
-            subtotal REAL NOT NULL DEFAULT 0,
-            shipping_cost REAL NOT NULL DEFAULT 0,
-            total REAL NOT NULL DEFAULT 0,
-            status TEXT NOT NULL DEFAULT 'processing',
-            tracking_number TEXT,
-            carrier TEXT,
-            status_note TEXT,
-            ordered_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            shipped_at TEXT,
-            delivered_at TEXT,
-            cancelled_at TEXT,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    ");
-
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id TEXT NOT NULL,
-            product_id INTEGER,
-            product_name TEXT NOT NULL,
-            product_image TEXT,
-            price REAL NOT NULL DEFAULT 0,
-            quantity INTEGER NOT NULL DEFAULT 1,
-            FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
-        )
-    ");
-
-    $pdo->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT NOT NULL UNIQUE,
