@@ -740,6 +740,12 @@ select {
     font-size: 14px;
 }
 
+.card-cta .btn-compare {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+}
+
 .card-cta .btn-wishlist:hover,
 .card-cta .btn-compare:hover {
     color: #e74c3c;
