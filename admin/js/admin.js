@@ -42,6 +42,7 @@ function openProductModal() {
     modalTitle.innerText = "เพิ่มสินค้าใหม่";
     form.reset();
     document.getElementById('p-id').value = ""; // Empty ID means new
+    loadSpecifications({});
     modal.classList.add('show');
 }
 
@@ -60,12 +61,52 @@ function editProduct(id) {
     document.getElementById('p-image').value = product.image;
     document.getElementById('p-specs').value = product.specs;
     
+    // Load specifications
+    loadSpecifications(product.specifications || {});
+    
     modal.classList.add('show');
+}
+
+// Load specifications into form
+function loadSpecifications(specs) {
+    const container = document.getElementById('specifications-container');
+    container.innerHTML = '';
+    
+    if (specs && Object.keys(specs).length > 0) {
+        Object.entries(specs).forEach(([key, value]) => {
+            addSpecificationField(key, value);
+        });
+    } else {
+        addSpecificationField();
+    }
 }
 
 // Close Modal
 function closeProductModal() {
     modal.classList.remove('show');
+}
+
+// Add Specification Field
+function addSpecificationField(key = '', value = '') {
+    const container = document.getElementById('specifications-container');
+    const id = 'spec-' + Date.now() + Math.random();
+    
+    const html = `
+        <div class="spec-row" id="${id}" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+            <input type="text" placeholder="ชื่อสเปค (เช่น โปรเซสเซอร์)" value="${key}" class="form-control spec-key" style="flex: 1;">
+            <input type="text" placeholder="ค่า" value="${value}" class="form-control spec-value" style="flex: 2;">
+            <button type="button" class="btn btn-sm btn-danger" onclick="document.getElementById('${id}').remove()" title="ลบ">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+// Remove Specification Field
+function removeSpecificationField(id) {
+    document.getElementById(id)?.remove();
 }
 
 // Delete Product
@@ -98,6 +139,17 @@ if (form) {
         const idVal = document.getElementById('p-id').value;
         const isEditing = idVal !== "";
         
+        // Collect specifications from form
+        const specifications = {};
+        const specRows = document.querySelectorAll('.spec-row');
+        specRows.forEach(row => {
+            const key = row.querySelector('.spec-key').value.trim();
+            const value = row.querySelector('.spec-value').value.trim();
+            if (key && value) {
+                specifications[key] = value;
+            }
+        });
+        
         const newProduct = {
             id: isEditing ? parseInt(idVal) : (products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1),
             name: document.getElementById('p-name').value,
@@ -111,16 +163,16 @@ if (form) {
             views: 0,
             sold: 0,
             inStock: true,
-            specifications: {}
+            specifications: specifications
         };
         
         if (isEditing) {
             const index = products.findIndex(p => p.id === newProduct.id);
             // Preserve existing data
-            newProduct.specifications = products[index].specifications;
             newProduct.views = products[index].views;
             newProduct.sold = products[index].sold;
             newProduct.badge = products[index].badge;
+            // specifications are updated from form input above
 
             // Try API update
             const apiResult = await apiUpdateProduct(newProduct.id, newProduct);

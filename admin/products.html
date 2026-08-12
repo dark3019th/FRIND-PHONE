@@ -132,6 +132,17 @@
                     <input type="text" id="p-specs" class="form-control" placeholder="CPU / GPU / RAM / SSD" required>
                 </div>
 
+                <!-- Detailed Specifications Section -->
+                <div class="form-group">
+                    <label>สเปคอย่างละเอียด</label>
+                    <div id="specifications-container" style="border: 1px solid #ddd; border-radius: 4px; padding: 12px; background: #f9f9f9; max-height: 400px; overflow-y: auto;">
+                        <!-- Dynamic spec items will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addSpecificationField()" style="margin-top: 10px;">
+                        <i class="fas fa-plus"></i> เพิ่มสเปค
+                    </button>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-edit" onclick="closeProductModal()">ยกเลิก</button>
                     <button type="submit" class="btn btn-primary">บันทึกสินค้า</button>
