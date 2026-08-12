@@ -978,6 +978,73 @@ select {
     background: #fff;
 }
 
+.promo-banner {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 50%, #c92a2a 100%);
+    margin-bottom: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.promo-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30px 40px;
+    color: #fff;
+}
+
+.promo-banner-text h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.promo-banner-text p {
+    font-size: 16px;
+    margin: 0;
+    opacity: 0.95;
+}
+
+.promo-banner-icon {
+    font-size: 48px;
+    opacity: 0.8;
+    animation: pulse-icon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .promo-banner-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px 25px;
+    }
+    
+    .promo-banner-text h2 {
+        font-size: 22px;
+    }
+    
+    .promo-banner-text p {
+        font-size: 14px;
+    }
+    
+    .promo-banner-icon {
+        font-size: 36px;
+        margin-top: 15px;
+    }
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
     background: var(--footer-bg);
