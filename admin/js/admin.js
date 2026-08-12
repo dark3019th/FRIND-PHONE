@@ -165,8 +165,7 @@ function renderDashboardData() {
     const users = getUsers().filter(u => u.role !== 'admin');
     if (el('dash-customers')) el('dash-customers').textContent = users.length;
 
-    const monthlyRevenue = products.reduce((sum, p) => sum + (p.price || 0), 0);
-    if (el('dash-revenue-month')) el('dash-revenue-month').textContent = '฿ ' + monthlyRevenue.toLocaleString('th-TH');
+
 }
 
 // ========== CUSTOMER MANAGEMENT ==========
@@ -297,10 +296,6 @@ function openCustomerDetailModal(userId) {
         </div>
 
         <div class="customer-stats-grid">
-            <div class="customer-stat-box">
-                <div class="stat-number">1</div>
-                <div class="stat-label">สถานะบัญชี</div>
-            </div>
             <div class="customer-stat-box">
                 <div class="stat-number">${role}</div>
                 <div class="stat-label">ประเภทผู้ใช้</div>

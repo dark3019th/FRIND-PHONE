@@ -74,8 +74,7 @@ function createProductCard(product) {
       </a>
       <div class="card-cta">
         <button class="btn-wishlist ${wishlist.includes(product.id) ? 'active' : ''}" onclick="toggleWishlist(${product.id})" id="wishlist-icon-${product.id}" title="เพิ่มสิ่งที่ชอบ"><i class="${wishlist.includes(product.id) ? 'fas' : 'far'} fa-heart"></i></button>
-        <button class="btn-compare ${compare.includes(product.id) ? 'active' : ''}" onclick="toggleCompare(${product.id})" id="compare-icon-${product.id}" title="เปรียบเทียบสินค้า"><i class="fas fa-arrows-left-right"></i></button>
-        <button class="btn-buy" onclick="window.location.href='product-detail.html?id=${product.id}'"><i class="fas fa-search-dollar"></i> ดูรายละเอียดราคา</button>
+        <button class="btn-compare ${compare.includes(product.id) ? 'active' : ''}" onclick="toggleCompare(${product.id})" id="compare-icon-${product.id}" title="เปรียบเทียบสินค้า"><i class="fas fa-shuffle"></i></button>
       </div>
       <a href="product-detail.html?id=${product.id}" class="card-body">
         <span class="card-brand">${product.brand}</span>
@@ -322,7 +321,6 @@ function initComparePage() {
                     <div class="compare-brand">${p.brand}</div>
                     <a href="product-detail.html?id=${p.id}" class="compare-name">${p.name}</a>
                     <div class="compare-price">฿${formatPrice(p.price)}</div>
-                    <button class="btn-buy" onclick="window.location.href='product-detail.html?id=${p.id}'"><i class="fas fa-search-dollar"></i> ดูรายละเอียดราคา</button>
                 </div>
                 <div class="compare-specs-list">
                     ${specsHTML}
