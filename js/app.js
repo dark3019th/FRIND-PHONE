@@ -74,7 +74,7 @@ function createProductCard(product) {
       </a>
       <div class="card-cta">
         <button class="btn-wishlist ${wishlist.includes(product.id) ? 'active' : ''}" onclick="toggleWishlist(${product.id})" id="wishlist-icon-${product.id}" title="เพิ่มสิ่งที่ชอบ"><i class="${wishlist.includes(product.id) ? 'fas' : 'far'} fa-heart"></i></button>
-        <button class="btn-compare ${compare.includes(product.id) ? 'active' : ''}" onclick="toggleCompare(${product.id})" id="compare-icon-${product.id}" title="เปรียบเทียบสินค้า"><i class="fas fa-shuffle"></i></button>
+        <button class="btn-compare ${compare.includes(product.id) ? 'active' : ''}" onclick="toggleCompare(${product.id})" id="compare-icon-${product.id}" title="เปรียบเทียบสินค้า"><i class="fas fa-arrows-left-right"></i></button>
       </div>
       <a href="product-detail.html?id=${product.id}" class="card-body">
         <span class="card-brand">${product.brand}</span>
@@ -285,49 +285,63 @@ function initComparePage() {
         emptyState.style.flexDirection = 'column';
         emptyState.style.alignItems = 'center';
         emptyState.style.padding = '60px 0';
-    } else {
-        grid.style.display = 'grid';
-        // Max 4 columns based on items, min 1
-        grid.style.gridTemplateColumns = `repeat(min(${compare.length}, 4), 1fr)`;
-        emptyState.style.display = 'none';
-        
-        const compareProducts = products.filter(p => compare.includes(p.id));
-        
-        // Define all keys we want to compare from specifications
-        const allSpecKeys = new Set();
-        compareProducts.forEach(p => {
-            if (p.specifications) {
-                Object.keys(p.specifications).forEach(k => allSpecKeys.add(k));
-            }
-        });
-        
-        // Render the comparison cards/table
-        grid.innerHTML = compareProducts.map(p => {
-            const specsHTML = Array.from(allSpecKeys).map(key => {
-                const val = p.specifications && p.specifications[key] ? p.specifications[key] : '-';
-                return `<div class="compare-spec-row">
-                          <span class="spec-label">${key}</span>
-                          <span class="spec-value">${val}</span>
-                        </div>`;
-            }).join('');
-            
-            return `
-            <div class="compare-card">
+        return;
+    }
+
+    grid.style.display = 'block';
+    grid.style.gridTemplateColumns = 'none';
+    emptyState.style.display = 'none';
+
+    const compareProducts = products.filter(p => compare.includes(p.id));
+    const allSpecKeys = Array.from(new Set(
+        compareProducts.flatMap(p => Object.keys(p.specifications || {}))
+    ));
+
+    const headerCells = compareProducts.map(p => `
+        <th class="compare-product-header">
+            <div class="compare-product-box">
                 <button class="compare-remove-btn" onclick="toggleCompare(${p.id})"><i class="fas fa-times"></i></button>
-                <a href="product-detail.html?id=${p.id}" class="compare-img">
+                <a href="product-detail.html?id=${p.id}" class="compare-table-image">
                     <img src="${p.image}" alt="${p.name}">
                 </a>
-                <div class="compare-info">
+                <div class="compare-table-info">
                     <div class="compare-brand">${p.brand}</div>
                     <a href="product-detail.html?id=${p.id}" class="compare-name">${p.name}</a>
                     <div class="compare-price">฿${formatPrice(p.price)}</div>
                 </div>
-                <div class="compare-specs-list">
-                    ${specsHTML}
-                </div>
-            </div>`;
+            </div>
+        </th>
+    `).join('');
+
+    const specRows = allSpecKeys.map(key => {
+        const cells = compareProducts.map(p => {
+            const value = p.specifications && p.specifications[key] ? p.specifications[key] : '-';
+            return `<td class="compare-table-cell">${value}</td>`;
         }).join('');
-    }
+
+        return `
+            <tr>
+                <th class="compare-feature-label">${key}</th>
+                ${cells}
+            </tr>
+        `;
+    }).join('');
+
+    grid.innerHTML = `
+        <div class="compare-table-wrap">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th class="compare-feature-label compare-empty-label">สเปคสินค้า</th>
+                        ${headerCells}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${specRows}
+                </tbody>
+            </table>
+        </div>
+    `;
 
     const clearBtn = document.getElementById('compare-clear-btn');
     if (clearBtn) {
@@ -341,7 +355,7 @@ function initComparePage() {
                 updateCompareBadge();
                 initComparePage();
                 showToast('ล้างรายการเปรียบเทียบเรียบร้อยแล้ว');
-                
+
                 const icons = document.querySelectorAll('.btn-compare.active');
                 icons.forEach(icon => {
                     icon.classList.remove('active');
