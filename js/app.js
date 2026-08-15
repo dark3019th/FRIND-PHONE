@@ -314,14 +314,32 @@ function initComparePage() {
     `).join('');
 
     const specRows = allSpecKeys.map(key => {
+        const values = compareProducts.map(p => {
+            const rawValue = p.specifications && p.specifications[key] !== undefined ? p.specifications[key] : '-';
+            return rawValue === null || rawValue === '' ? '-' : String(rawValue).trim();
+        });
+
+        const normalizedValues = values.map(v => v === '-' ? '-' : v.toLowerCase());
+        const uniqueValues = [...new Set(normalizedValues.filter(v => v !== '-'))];
+        const isUniform = uniqueValues.length === 0 || uniqueValues.length === 1;
+        const rowClass = uniqueValues.length === 0 ? 'compare-row-neutral' : isUniform ? 'compare-row-match' : 'compare-row-different';
+
         const cells = compareProducts.map(p => {
-            const value = p.specifications && p.specifications[key] ? p.specifications[key] : '-';
-            return `<td class="compare-table-cell">${value}</td>`;
+            const rawValue = p.specifications && p.specifications[key] !== undefined ? p.specifications[key] : '-';
+            const value = rawValue === null || rawValue === '' ? '-' : String(rawValue).trim();
+            const normalizedValue = value === '-' ? '-' : value.toLowerCase();
+            const cellClass = value === '-' ? 'compare-cell-neutral' : isUniform ? 'compare-cell-match' : 'compare-cell-different';
+            const highlightNote = value === '-' ? '' : isUniform ? '<span class="compare-badge compare-badge-match">เหมือนกัน</span>' : '<span class="compare-badge compare-badge-different">ต่างกัน</span>';
+
+            const isExactMatch = normalizedValue !== '-' && uniqueValues.length > 0 && uniqueValues.every(v => v === normalizedValue);
+            const finalClass = value === '-' ? 'compare-cell-neutral' : isExactMatch || isUniform ? 'compare-cell-match' : 'compare-cell-different';
+
+            return `<td class="compare-table-cell ${finalClass}">${value}${highlightNote}</td>`;
         }).join('');
 
         return `
             <tr>
-                <th class="compare-feature-label">${key}</th>
+                <th class="compare-feature-label ${rowClass}">${key}</th>
                 ${cells}
             </tr>
         `;
