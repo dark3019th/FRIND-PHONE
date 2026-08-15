@@ -496,10 +496,15 @@ function initProductsPage() {
     // Map for titles
     const catNames = {
         notebook: 'โน้ตบุ๊ค',
-        hardware: 'คอมพิวเตอร์ฮาร์ดแวร์', monitor: 'จอคอมพิวเตอร์',
-        gaming: 'อุปกรณ์เกมมิ่งเกียร์', phone: 'สมาร์ทโฟน',
-        audio: 'ลำโพง / หูฟัง', printer: 'เครื่องพิมพ์',
-        network: 'อุปกรณ์เน็ตเวิร์ค', apple: 'Apple Products'
+        hardware: 'คอมพิวเตอร์ฮาร์ดแวร์',
+        monitor: 'จอคอมพิวเตอร์',
+        keyboard: 'คีย์บอร์ด',
+        mouse: 'เมาส์',
+        phone: 'สมาร์ทโฟน',
+        audio: 'ลำโพง / หูฟัง',
+        printer: 'เครื่องพิมพ์',
+        network: 'อุปกรณ์เน็ตเวิร์ค',
+        apple: 'Apple Products'
     };
 
     const titleEl = document.getElementById('page-title');

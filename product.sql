@@ -76,7 +76,7 @@ INSERT INTO `product` (`id`, `name`, `brand`, `category`, `specs`, `original_pri
  NULL, TRUE,
  '{"ประเภท":"Inkjet Printer (Ink Tank System)","ฟังก์ชั่น":"Print / Scan / Copy / Fax","ความเร็วพิมพ์":"13 ipm (B/W), 6.8 ipm (Color)","การเชื่อมต่อ":"USB, WiFi, Ethernet","พิมพ์สองหน้า":"Auto Duplex","รองรับกระดาษ":"A4, Legal, Letter, Envelope"}'),
 
-(8, 'KEYBOARD SteelSeries Apex 9 Mini', 'SteelSeries', 'gaming',
+(8, 'KEYBOARD SteelSeries Apex 9 Mini', 'SteelSeries', 'keyboard',
  'OptiPoint Optical Switch / 60% Layout / Per-Key RGB / Detachable USB-C',
  5490.00, 4790.00, 'hot', 3476, 156,
  'https://placehold.co/300x250/f5f5f5/333?text=Apex+9+Mini',
@@ -132,7 +132,7 @@ INSERT INTO `product` (`id`, `name`, `brand`, `category`, `specs`, `original_pri
  NULL, TRUE,
  '{"กำลังไฟ":"550W","มาตรฐาน":"80 PLUS Bronze","ประเภท":"Non-Modular","พัดลม":"120mm Hydraulic Bearing","สายไฟ GPU":"1 x 6+2 pin","PFC":"Active PFC"}'),
 
-(16, 'MOUSE Logitech G Pro X Superlight 2', 'Logitech', 'gaming',
+(16, 'MOUSE Logitech G Pro X Superlight 2', 'Logitech', 'mouse',
  'HERO 2 Sensor 44K DPI / 63g / LIGHTSPEED Wireless / 95 Hours Battery',
  4690.00, 3990.00, 'hot', 5678, 234,
  'https://placehold.co/300x250/f5f5f5/333?text=GPro+X2',
