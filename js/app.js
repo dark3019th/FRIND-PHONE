@@ -314,32 +314,24 @@ function initComparePage() {
     `).join('');
 
     const specRows = allSpecKeys.map(key => {
-        const values = compareProducts.map(p => {
-            const rawValue = p.specifications && p.specifications[key] !== undefined ? p.specifications[key] : '-';
-            return rawValue === null || rawValue === '' ? '-' : String(rawValue).trim();
-        });
+        const values = compareProducts.map(p =>
+            p.specifications && p.specifications[key] ? p.specifications[key] : '-'
+        );
+        const nonDashValues = values.filter(v => v !== '-');
+        const allSame = nonDashValues.length > 1 && nonDashValues.every(v => v === nonDashValues[0]);
 
-        const normalizedValues = values.map(v => v === '-' ? '-' : v.toLowerCase());
-        const uniqueValues = [...new Set(normalizedValues.filter(v => v !== '-'))];
-        const isUniform = uniqueValues.length === 0 || uniqueValues.length === 1;
-        const rowClass = uniqueValues.length === 0 ? 'compare-row-neutral' : isUniform ? 'compare-row-match' : 'compare-row-different';
-
-        const cells = compareProducts.map(p => {
-            const rawValue = p.specifications && p.specifications[key] !== undefined ? p.specifications[key] : '-';
-            const value = rawValue === null || rawValue === '' ? '-' : String(rawValue).trim();
-            const normalizedValue = value === '-' ? '-' : value.toLowerCase();
-            const cellClass = value === '-' ? 'compare-cell-neutral' : isUniform ? 'compare-cell-match' : 'compare-cell-different';
-            const highlightNote = value === '-' ? '' : isUniform ? '<span class="compare-badge compare-badge-match">เหมือนกัน</span>' : '<span class="compare-badge compare-badge-different">ต่างกัน</span>';
-
-            const isExactMatch = normalizedValue !== '-' && uniqueValues.length > 0 && uniqueValues.every(v => v === normalizedValue);
-            const finalClass = value === '-' ? 'compare-cell-neutral' : isExactMatch || isUniform ? 'compare-cell-match' : 'compare-cell-different';
-
-            return `<td class="compare-table-cell ${finalClass}">${value}${highlightNote}</td>`;
+        const cells = values.map(value => {
+            if (value === '-') return `<td class="compare-table-cell spec-na">-</td>`;
+            let colorClass = '';
+            if (nonDashValues.length > 1) {
+                colorClass = allSame ? 'spec-same' : 'spec-diff';
+            }
+            return `<td class="compare-table-cell ${colorClass}">${value}</td>`;
         }).join('');
 
         return `
             <tr>
-                <th class="compare-feature-label ${rowClass}">${key}</th>
+                <th class="compare-feature-label">${key}</th>
                 ${cells}
             </tr>
         `;

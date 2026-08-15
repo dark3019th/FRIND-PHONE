@@ -3002,21 +3002,6 @@ select {
     text-align: left;
 }
 
-.compare-row-match {
-    background: rgba(34, 197, 94, 0.08);
-    color: #166534;
-}
-
-.compare-row-different {
-    background: rgba(245, 158, 11, 0.08);
-    color: #92400e;
-}
-
-.compare-row-neutral {
-    background: #f8fafc;
-    color: var(--text-medium);
-}
-
 .compare-product-header {
     min-width: 240px;
     background: #fff;
@@ -3073,47 +3058,6 @@ select {
     font-size: 13px;
     color: var(--text-dark);
     line-height: 1.6;
-    transition: all 0.2s ease;
-}
-
-.compare-cell-match {
-    background: rgba(34, 197, 94, 0.08);
-    color: #166534;
-    border-left: 4px solid #22c55e;
-    font-weight: 600;
-}
-
-.compare-cell-different {
-    background: rgba(245, 158, 11, 0.08);
-    color: #92400e;
-    border-left: 4px solid #f59e0b;
-    font-weight: 600;
-}
-
-.compare-cell-neutral {
-    background: #f8fafc;
-    color: var(--text-medium);
-}
-
-.compare-badge {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 3px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    vertical-align: middle;
-}
-
-.compare-badge-match {
-    background: rgba(34, 197, 94, 0.15);
-    color: #166534;
-}
-
-.compare-badge-different {
-    background: rgba(245, 158, 11, 0.18);
-    color: #92400e;
 }
 
 .compare-remove-btn {
@@ -3145,4 +3089,87 @@ select {
 .compare-info,
 .compare-img {
     display: none;
+}
+
+/* ========== Spec Comparison Colors ========== */
+.spec-same {
+    background: #e8f5e9 !important;
+    border-left: 3px solid #4caf50;
+    position: relative;
+}
+
+.spec-same::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 10px;
+    color: #4caf50;
+    font-weight: 700;
+    opacity: 0.7;
+}
+
+.spec-diff {
+    background: #fff3e0 !important;
+    border-left: 3px solid #ff9800;
+    position: relative;
+}
+
+.spec-diff::after {
+    content: '≠';
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 12px;
+    color: #ff9800;
+    font-weight: 700;
+    opacity: 0.7;
+}
+
+.spec-na {
+    background: #f9f9f9 !important;
+    color: #bbb !important;
+    font-style: italic;
+}
+
+/* Legend */
+.compare-legend {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 13px;
+    color: #666;
+    font-family: var(--font-th);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.legend-color.lg-same {
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+}
+
+.legend-color.lg-diff {
+    background: #fff3e0;
+    border: 2px solid #ff9800;
+}
+
+@media (max-width: 768px) {
+    .compare-legend {
+        gap: 12px;
+        font-size: 11px;
+        flex-wrap: wrap;
+    }
 }
