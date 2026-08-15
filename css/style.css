@@ -3166,6 +3166,24 @@ select {
     border: 2px solid #ff9800;
 }
 
+/* Price Highlight */
+.compare-price.price-best {
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 600;
+}
+
+.compare-price.price-worst {
+    color: #c62828;
+    background: #ffebee;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
 @media (max-width: 768px) {
     .compare-legend {
         gap: 12px;

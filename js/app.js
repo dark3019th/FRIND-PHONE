@@ -297,21 +297,34 @@ function initComparePage() {
         compareProducts.flatMap(p => Object.keys(p.specifications || {}))
     ));
 
-    const headerCells = compareProducts.map(p => `
-        <th class="compare-product-header">
-            <div class="compare-product-box">
-                <button class="compare-remove-btn" onclick="toggleCompare(${p.id})"><i class="fas fa-times"></i></button>
-                <a href="product-detail.html?id=${p.id}" class="compare-table-image">
-                    <img src="${p.image}" alt="${p.name}">
-                </a>
-                <div class="compare-table-info">
-                    <div class="compare-brand">${p.brand}</div>
-                    <a href="product-detail.html?id=${p.id}" class="compare-name">${p.name}</a>
-                    <div class="compare-price">฿${formatPrice(p.price)}</div>
+    const prices = compareProducts.map(p => p.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const hasDifferentPrices = minPrice !== maxPrice;
+
+    const headerCells = compareProducts.map(p => {
+        let priceClass = '';
+        if (compareProducts.length > 1 && hasDifferentPrices) {
+            if (p.price === minPrice) priceClass = 'price-best';
+            else if (p.price === maxPrice) priceClass = 'price-worst';
+        }
+        
+        return `
+            <th class="compare-product-header">
+                <div class="compare-product-box">
+                    <button class="compare-remove-btn" onclick="toggleCompare(${p.id})"><i class="fas fa-times"></i></button>
+                    <a href="product-detail.html?id=${p.id}" class="compare-table-image">
+                        <img src="${p.image}" alt="${p.name}">
+                    </a>
+                    <div class="compare-table-info">
+                        <div class="compare-brand">${p.brand}</div>
+                        <a href="product-detail.html?id=${p.id}" class="compare-name">${p.name}</a>
+                        <div class="compare-price ${priceClass}">฿${formatPrice(p.price)}</div>
+                    </div>
                 </div>
-            </div>
-        </th>
-    `).join('');
+            </th>
+        `;
+    }).join('');
 
     const specRows = allSpecKeys.map(key => {
         const values = compareProducts.map(p =>
